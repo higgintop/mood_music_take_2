@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+
+require 'highline/import'
+Dir["./app/**/*.rb"].each {|f| require f}
+Dir["./lib/**/*.rb"].each {|f| require f}
+
+
+def print_error_message
+  puts "[Help] Run as: ./mood_music manage"
+end
+
+def list_main_menu
+  choose do |menu|
+    recommendations_controller = RecommendationsController.new
+    menu.prompt = ""
+    menu.choice('Add song recommendation') do
+      song_title = ""
+      artist = ""
+      mood_category = ""
+      loop do
+        song_title = ask("What is the song's title?")
+        song_response = recommendations_controller.is_song_title_valid?(song_title)
+        break if song_response
+      end
+
+      loop do
+        artist = ask("Who is the artist of the song?")
+        artist_response = recommendations_controller.is_artist_valid?(artist)
+        break if artist_response
+      end
+
+      loop do
+        mood_category = ask("How would you classify the feel of this song?\n1. happy\n2. sad\n3. mellow\n4. angry")
+        mood_response = recommendations_controller.is_mood_category_valid?(mood_category)
+        break if mood_response
+      end
+
+
+      # save
+      added_rec = recommendations_controller.add_row(song_title, artist, mood_category)
+      if added_rec == "valid"
+        puts "Your recommendation was successfully saved to the database"
+      else
+        puts "Your recommendation was not saved."
+      end
+      list_main_menu
+    end
+    menu.choice('List song recommendations') do
+      recommendations_controller.list_mood_categories_menu
+      exit
+    end
+    menu.choice('Exit') do
+      say ("Peace Out!")
+      exit
+    end
+  end
+end
+
+
+if ARGV.size == 1 and ARGV[0] == 'manage'
+  list_main_menu
+elsif ARGV.size == 1 and ARGV[0] == 'recommend'
+  puts "What is your mood today?"
+  choose do |menu|
+    menu.prompt = ""
+    mood_controller = MoodsController.new
+    menu.choice('happy') do
+      puts mood_controller.find_recommendation('happy')
+    end
+    menu.choice('sad') do
+      puts mood_controller.find_recommendation('sad')
+    end
+    menu.choice('mellow') do
+      puts mood_controller.find_recommendation('mellow')
+    end
+    menu.choice('angry') do
+      puts mood_controller.find_recommendation('angry')
+    end
+  end
+else
+  print_error_message
+end
