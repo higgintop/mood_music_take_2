@@ -26,7 +26,6 @@ task :import do
     rec.song_title = row[0]
     rec.artist = row[1]
     rec.mood_category = row[2]
-    didSave = rec.save
-    puts "did save?" + didSave.to_s
+    rec.save
   end
 end
