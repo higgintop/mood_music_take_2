@@ -3,8 +3,8 @@ require_relative '../helper'
 class TestEditingARecommendation < Minitest::Test
 
   def test_editing_a_recommendation_happy_path_a
-    create_recommendation("Elephant", "Tame Impala", "1")
-    create_recommendation("Tangerine", "Led Zeppelin", "1")
+    create_recommendation("Elephant", "Tame Impala", "happy")
+    create_recommendation("Tangerine", "Led Zeppelin", "happy")
     shell_output = ""
     expected = ""
     IO.popen('./mood_music manage', 'r+') do |pipe|
@@ -40,8 +40,8 @@ EOS
 
 
   def test_editing_a_recommendation_happy_path_b
-    create_recommendation("Elephant", "Tame Impala", "1")
-    create_recommendation("Tangerine", "Led Zeppelin", "1")
+    create_recommendation("Elephant", "Tame Impala", "happy")
+    create_recommendation("Tangerine", "Led Zeppelin", "happy")
 
     shell_output = ""
     expected = ""
@@ -76,8 +76,8 @@ EOS
   end
 
   def test_editing_a_recommendation_happy_path_c
-    create_recommendation("Elephant", "Tame Impala", "1")
-    create_recommendation("Tangerine", "Led Zeppelin", "1")
+    create_recommendation("Elephant", "Tame Impala", "happy")
+    create_recommendation("Tangerine", "Led Zeppelin", "happy")
 
     shell_output = ""
     expected = ""

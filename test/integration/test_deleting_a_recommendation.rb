@@ -3,8 +3,8 @@ require_relative '../helper'
 class TestDeletingARecommendation < Minitest::Test
 
     def test_deleting_a_recommendation_happy_path
-    create_recommendation("Elephant", "Tame Impala", 1)
-    create_recommendation("Tangerine", "Led Zeppelin", 1)
+    create_recommendation("Elephant", "Tame Impala", 'happy')
+    create_recommendation("Tangerine", "Led Zeppelin", 'happy')
     shell_output = ""
     expected = ""
     IO.popen('./mood_music manage', 'r+') do |pipe|
