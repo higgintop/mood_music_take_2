@@ -24,22 +24,18 @@ class Recommendation
     end
   end
 
-  def self.by_mood(category_index)
-    Database.execute("SELECT song_title, artist, id FROM recommendations WHERE mood_category=#{category_index.to_s}")
+  def self.by_mood(category)
+    Database.execute("SELECT song_title, artist, id FROM recommendations WHERE mood_category='#{category}'")
   end
 
-  def self.count_by_mood(category_index)
-    Database.execute("SELECT count(id) FROM recommendations WHERE mood_category=?", category_index)[0][0]
-  end
-  # class method count
-  def self.count
-    Database.execute("SELECT count(id) FROM recommendations")[0][0]
+  def self.count_by_mood(category)
+    Database.execute("SELECT count(id) FROM recommendations WHERE mood_category=?", category)[0][0]
   end
 
-  def song_title_valid?
-    song_title.strip!
-    if song_title.nil? or song_title.empty? or /^\d+$/.match(song_title)
-      @errors = "Song title invalid"
+  def valid?(property)
+    property.strip!
+    if property.nil? or property.empty? or /^\d+$/.match(property)
+      @errors = "#{property} is invalid"
       return false
     else
       @errors = nil
@@ -47,44 +43,23 @@ class Recommendation
     end
   end
 
-  def artist_valid?
-    artist.strip!
-    if artist.nil? or artist.empty? or /^\d+$/.match(artist)
-      @errors = "Artist invalid"
-      return false
-    else
-      @errors = nil
-      return true
-    end
-  end
-
-
-  def mood_category_valid?
-    if mood_category.nil? or mood_category.to_i < 1 or mood_category.to_i > 4
-      @errors = "Mood category invalid"
-      return false
-    else
-      @errors = nil
-      return true
-    end
-  end
 
   def save
-   return false unless (song_title_valid? and artist_valid? and mood_category_valid?)
+   return false unless (valid?(song_title) and valid?(artist) and valid?(mood_category))
    Database.execute("INSERT INTO recommendations (song_title, artist, mood_category) VALUES (?,?,?)", song_title, artist, mood_category)
    @id = Database.execute("SELECT last_insert_rowid()")[0]['last_insert_rowid()']
   end
 
   def update(selection_id)
-    if song_title_valid?
+    if valid?(song_title)
       Database.execute("UPDATE recommendations SET song_title=? WHERE id=?", song_title, selection_id)
     end
 
-    if artist_valid?
+    if valid?(artist)
       Database.execute("UPDATE recommendations SET artist=? WHERE id=?", artist, selection_id)
     end
 
-    if mood_category_valid?
+    if valid?(mood_category)
       Database.execute("UPDATE recommendations SET mood_category=? WHERE id=?", mood_category, selection_id)
     end
   end

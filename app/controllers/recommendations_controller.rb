@@ -2,9 +2,10 @@
 
 
 class RecommendationsController
-  def index(category_index)
-    if Recommendation.count_by_mood(category_index) > 0
-      recommendations = Recommendation.by_mood(category_index)
+
+  def index(category)
+    if Recommendation.count_by_mood(category) > 0
+      recommendations = Recommendation.by_mood(category)
       rec_str = ""
       recommendations.each_with_index do |rec, index|
         rec_str << "#{index + 1}. #{rec[0]} by #{rec[1]}\n"
@@ -16,9 +17,9 @@ class RecommendationsController
   end
 
 
-  def get_selection(category_index, user_selection)
-    if Recommendation.count > 0
-      recommendations = Recommendation.by_mood(category_index)
+  def get_selection(category, user_selection)
+    if Recommendation.count_by_mood(category) > 0
+      recommendations = Recommendation.by_mood(category)
       recommendations[user_selection-1]
     else
       nil
@@ -33,7 +34,7 @@ class RecommendationsController
     rec = Recommendation.new
     rec.song_title = song_title_clean
     rec.artist = artist_clean
-    rec.mood_category = mood_category.to_i
+    rec.mood_category = mood_category
 
     if rec.save
       return "valid"
@@ -49,7 +50,7 @@ class RecommendationsController
     rec = Recommendation.new
     rec.song_title = song_title_clean
     rec.artist = artist_clean
-    rec.mood_category = new_mood_category.to_i
+    rec.mood_category = new_mood_category
 
     if rec.update(id)
       return "valid"
@@ -63,30 +64,24 @@ class RecommendationsController
     Recommendation.delete(id)
   end
 
-  def is_song_title_valid?(title)
+  def is_property_valid?(property)
     rec = Recommendation.new
-    rec.song_title = title
-    return rec.song_title_valid?
+    return rec.valid?(property)
   end
 
-  def is_artist_valid?(artist)
-    rec = Recommendation.new
-    rec.artist = artist
-    return rec.artist_valid?
+  def find_recommendation(category_name)
+    recommendation_output = ""
+    random_rec = Recommendation.find_random_song(category_name)
+    recommendation_output << "I recommend the song #{random_rec['song_title']} by #{random_rec['artist']}."
   end
 
-  def is_mood_category_valid?(mood_category)
-    rec = Recommendation.new
-    rec.mood_category = mood_category.to_i
-    return rec.mood_category_valid?
-  end
 
   def list_mood_categories_menu
     choose do |sub_menu|
       sub_menu.prompt=""
       puts "What category would you like to see?"
       sub_menu.choice('happy') do
-        response = index(1)
+        response = index('happy')
         if response == "No recommendations found.\n"
           puts response
           list_main_menu
@@ -95,7 +90,7 @@ class RecommendationsController
           selection = nil
           loop do
             choice = ask("").to_i
-            selection = get_selection(1, choice)
+            selection = get_selection('happy', choice)
             if selection.nil?
               puts "Try again!"
             end
@@ -106,7 +101,7 @@ class RecommendationsController
         list_action_options(selection['id'])
       end
       sub_menu.choice('sad') do
-        response = index(2)
+        response = index('sad')
         if response == "No recommendations found.\n"
           puts response
           list_main_menu
@@ -115,7 +110,7 @@ class RecommendationsController
           selection = nil
           loop do
             choice = ask("").to_i
-            selection = get_selection(2, choice)
+            selection = get_selection('sad', choice)
             if selection.nil?
               puts "Try again!"
             end
@@ -128,7 +123,7 @@ class RecommendationsController
 
       end
       sub_menu.choice('mellow') do
-        response = index(3)
+        response = index('mellow')
         if response == "No recommendations found.\n"
           puts response
           list_main_menu
@@ -137,7 +132,7 @@ class RecommendationsController
           selection = nil
           loop do
             choice = ask("").to_i
-            selection = get_selection(3, choice)
+            selection = get_selection('mellow', choice)
             if selection.nil?
               puts "Try again!"
             end
@@ -150,7 +145,7 @@ class RecommendationsController
 
       end
       sub_menu.choice('angry') do
-        response = index(4)
+        response = index('angry')
         if response == "No recommendations found.\n"
           puts response
           list_main_menu
@@ -159,7 +154,7 @@ class RecommendationsController
           selection = nil
           loop do
             choice = ask("").to_i
-            selection = get_selection(4, choice)
+            selection = get_selection('angry', choice)
             if selection.nil?
               puts "Try again!"
             end
@@ -188,7 +183,7 @@ class RecommendationsController
           if update_song_title == 'Y'
             loop do
              new_song_title = ask("Please enter new song title:")
-             break if is_song_title_valid?(new_song_title)
+             break if is_property_valid?(new_song_title)
             end
           end
           break if update_song_title == 'Y' or update_song_title == 'N'
@@ -199,7 +194,7 @@ class RecommendationsController
           if update_artist == 'Y'
             loop do
              new_artist = ask("Please enter new artist:")
-             break if is_artist_valid?(new_artist)
+             break if is_property_valid?(new_artist)
             end
           end
           break if update_artist == 'Y' or update_artist == 'N'
@@ -210,7 +205,7 @@ class RecommendationsController
           if update_mood_category == 'Y'
             loop do
               new_mood_category = ask("Please enter new mood category:\n1. happy\n2. sad\n3. mellow\n4. angry")
-             break if is_mood_category_valid?(new_mood_category)
+             break if is_property_valid?(new_mood_category)
             end
           end
           break if update_mood_category == 'Y' or update_mood_category == 'N'
@@ -233,6 +228,53 @@ class RecommendationsController
       menu.choice('exit'){list_main_menu}
     end
   end
+
+  def list_main_menu
+    choose do |menu|
+      recommendations_controller = RecommendationsController.new
+      menu.prompt = ""
+      menu.choice('Add song recommendation') do
+        song_title = ""
+        artist = ""
+        mood_category = ""
+        loop do
+          song_title = ask("What is the song's title?")
+          song_response = recommendations_controller.is_property_valid?(song_title)
+          break if song_response
+        end
+
+        loop do
+          artist = ask("Who is the artist of the song?")
+          artist_response = recommendations_controller.is_property_valid?(artist)
+          break if artist_response
+        end
+
+        loop do
+          mood_category = ask("How would you classify the feel of this song?\n1. happy\n2. sad\n3. mellow\n4. angry")
+          mood_response = recommendations_controller.is_property_valid?(mood_category)
+          break if mood_response
+        end
+
+        # save
+        added_rec = recommendations_controller.add_row(song_title, artist, mood_category)
+        if added_rec == "valid"
+          puts "Your recommendation was successfully saved to the database"
+        else
+          puts "Your recommendation was not saved."
+        end
+        list_main_menu
+      end
+      menu.choice('List song recommendations') do
+        recommendations_controller.list_mood_categories_menu
+        exit
+      end
+      menu.choice('Exit') do
+        say ("Peace Out!")
+        exit
+      end
+    end
+  end
+
 end
 
 

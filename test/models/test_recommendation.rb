@@ -32,19 +32,19 @@ describe Recommendation do
   describe "#count" do
     describe "if there are no recs in database" do
       it "should return 0" do
-        assert_equal 0, Recommendation.count
+        assert_equal 0, Recommendation.count_by_mood("happy")
       end
     end
 
     describe "if there are recs in database" do
       before do
-        create_recommendation("b_song", "b_artist", 1)
-        create_recommendation("a_song", "a_artist", 2)
-        create_recommendation("c_song", "c_artist", 3)
+        create_recommendation("b_song", "b_artist", "happy")
+        create_recommendation("a_song", "a_artist", "happy")
+        create_recommendation("c_song", "c_artist", "happy")
       end
 
       it "should return the correct count" do
-        assert_equal 3, Recommendation.count
+        assert_equal 3, Recommendation.count_by_mood("happy")
       end
     end
   end
@@ -63,13 +63,13 @@ describe Recommendation do
         it "should return true" do
          recommendation.song_title = "test song title"
          recommendation.artist = "test artist"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
          assert recommendation.save # returns the ID which is truthy
        end
        it "should save the model to the database" do
          recommendation.song_title = "test song title"
          recommendation.artist = "test artist"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
 
          recommendation.save
          last_row = Database.execute("SELECT * FROM recommendations")
@@ -79,7 +79,7 @@ describe Recommendation do
        it "should populate the model with the id from the database" do
          recommendation.song_title = "test song title"
          recommendation.artist = "test artist"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
 
          recommendation.save
          last_row = Database.execute("SELECT * FROM recommendations")
@@ -93,39 +93,37 @@ describe Recommendation do
        it "should return false" do
          recommendation.song_title = ""
          recommendation.artist = "test artist"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
 
          refute recommendation.save
        end
        it "should not save the model to the database" do
          recommendation.song_title = ""
          recommendation.artist = "test artist"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
 
          recommendation.save
-         assert_equal 0, Recommendation.count
+         assert_equal 0, Recommendation.count_by_mood("happy")
        end
        it "should populate the error messages" do
          recommendation.song_title = ""
          recommendation.artist = "test artist"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
 
          recommendation.save
-         assert_equal "Song title invalid", recommendation.errors
+         assert_equal " is invalid", recommendation.errors
        end
      end
    end
 
-   describe ".song_title_valid?" do
+   describe ".valid?" do
      describe "with valid data" do
        let(:recommendation) {Recommendation.new}
        it "returns true" do
-         recommendation.song_title = "test song title"
-         assert recommendation.song_title_valid?
+         assert recommendation.valid?("test song title")
        end
        it "should set errors to nil" do
-         recommendation.song_title = "test song title"
-         recommendation.song_title_valid?
+         recommendation.valid?("test song title")
          assert recommendation.errors.nil?
        end
      end
@@ -133,13 +131,12 @@ describe Recommendation do
      describe "with an empty song title" do
        let(:recommendation) {Recommendation.new}
        it "returns false" do
-         recommendation.song_title = ""
-         refute recommendation.song_title_valid?
+         refute recommendation.valid?("")
        end
        it "sets the error message" do
          recommendation.song_title = ""
-         recommendation.song_title_valid?
-         assert_equal "Song title invalid", recommendation.errors
+         recommendation.valid?("")
+         assert_equal " is invalid", recommendation.errors
        end
      end
 
@@ -147,12 +144,12 @@ describe Recommendation do
        let(:recommendation) { Recommendation.new}
        it "returns false" do
          recommendation.song_title = "777"
-         refute recommendation.song_title_valid?
+         refute recommendation.valid?("777")
        end
        it "sets the error message" do
          recommendation.song_title = "777"
-         recommendation.song_title_valid?
-         assert_equal "Song title invalid", recommendation.errors
+         recommendation.valid?("777")
+         assert_equal "777 is invalid", recommendation.errors
        end
      end
 
@@ -160,120 +157,14 @@ describe Recommendation do
        let(:recommendation) {Recommendation.new}
        before do
          recommendation.song_title = "777"
-         refute recommendation.song_title_valid?
+         refute recommendation.valid?("777")
          recommendation.song_title = "Better song title"
        end
        it "should return true" do
-         assert recommendation.song_title_valid?
+         assert recommendation.valid?("Better song title")
        end
        it "should not have an error message" do
-         recommendation.song_title_valid?
-         assert_nil recommendation.errors
-       end
-     end
-   end
-
-
-
-
-   describe ".artist_valid?" do
-     describe "with valid data" do
-       let(:recommendation) {Recommendation.new}
-       it "returns true" do
-         recommendation.artist = "test artist"
-         assert recommendation.artist_valid?
-       end
-       it "should set errors to nil" do
-         recommendation.artist = "test artist"
-         recommendation.artist_valid?
-         assert recommendation.errors.nil?
-       end
-     end
-
-     describe "with an empty artist" do
-       let(:recommendation) {Recommendation.new}
-       it "returns false" do
-         recommendation.artist = ""
-         refute recommendation.artist_valid?
-       end
-       it "sets the error message" do
-         recommendation.artist = ""
-         recommendation.artist_valid?
-         assert_equal "Artist invalid", recommendation.errors
-       end
-     end
-
-     describe "an artist with no letter characters" do
-       let(:recommendation) { Recommendation.new}
-       it "returns false" do
-         recommendation.artist = "777"
-         refute recommendation.artist_valid?
-       end
-       it "sets the error message" do
-         recommendation.artist = "777"
-         recommendation.artist_valid?
-         assert_equal "Artist invalid", recommendation.errors
-       end
-     end
-
-     describe "with previously invalid artist" do
-       let(:recommendation) {Recommendation.new}
-       before do
-         recommendation.artist = "777"
-         refute recommendation.artist_valid?
-         recommendation.artist = "Better Artist"
-       end
-       it "should return true" do
-         assert recommendation.artist_valid?
-       end
-       it "should not have an error message" do
-         recommendation.artist_valid?
-         assert_nil recommendation.errors
-       end
-     end
-   end
-
-
-
-      describe ".mood_category_valid?" do
-     describe "with valid data" do
-       let(:recommendation) {Recommendation.new}
-       it "returns true" do
-         recommendation.mood_category = "1"
-         assert recommendation.mood_category_valid?
-       end
-       it "should set errors to nil" do
-         recommendation.mood_category = "1"
-         recommendation.mood_category_valid?
-         assert recommendation.errors.nil?
-       end
-     end
-
-     describe "with an empty mood_category" do
-       let(:recommendation) {Recommendation.new}
-       it "returns false" do
-         recommendation.mood_category = ""
-         refute recommendation.mood_category_valid?
-       end
-       it "sets the error message" do
-         recommendation.mood_category = ""
-         recommendation.mood_category_valid?
-         assert_equal "Mood category invalid", recommendation.errors
-       end
-     end
-
-     describe "with previously invalid mood_category" do
-       let(:recommendation) {Recommendation.new}
-       before do
-         recommendation.mood_category = "777"
-         refute recommendation.mood_category_valid?
-         recommendation.mood_category = "1"
-       end
-       it "should return true" do
-         assert recommendation.mood_category_valid?
-       end
-       it "should not have an error message" do
-         recommendation.mood_category_valid?
+         recommendation.valid?("Better song title")
          assert_nil recommendation.errors
        end
      end
@@ -286,16 +177,16 @@ describe Recommendation do
        it "should update the recommendation but not the id" do
          recommendation.song_title = "Original Song Title"
          recommendation.artist = "Original Artist Name"
-         recommendation.mood_category = "1"
+         recommendation.mood_category = "happy"
 
          id = recommendation.save # put in database
-         assert_equal 1, Recommendation.count
+         assert_equal 1, Recommendation.count_by_mood("happy")
 
          # now update
          recommendation.song_title = "New Song Title"
          recommendation.update(id)
          last_row = Database.execute("SELECT * FROM recommendations WHERE song_title LIKE ?", "New Song Title")[0]
-         assert_equal 1, Recommendation.count
+         assert_equal 1, Recommendation.count_by_mood("happy")
          assert_equal new_song_title, last_row['song_title']
        end
      end

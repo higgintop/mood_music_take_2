@@ -11,7 +11,7 @@ class Database
       id integer PRIMARY KEY AUTOINCREMENT,
       song_title varchar(255) NOT NULL,
       artist varchar(255) NOT NULL,
-      mood_category integer NOT NULL
+      mood_category varchar(255) NOT NULL
     );
     SQL
     Database.execute <<-SQL
