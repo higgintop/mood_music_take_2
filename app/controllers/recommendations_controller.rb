@@ -249,10 +249,13 @@ class RecommendationsController
           break if artist_response
         end
 
-        loop do
-          mood_category = ask("How would you classify the feel of this song?\n1. happy\n2. sad\n3. mellow\n4. angry")
-          mood_response = recommendations_controller.is_property_valid?(mood_category)
-          break if mood_response
+        choose do |mood_menu|
+          mood_menu.prompt = ""
+          say('How would you classify the feel of this song?')
+          mood_menu.choice('happy') {mood_category = 'happy'}
+          mood_menu.choice('sad') {mood_category = 'sad'}
+          mood_menu.choice('mellow') {mood_category = 'mellow'}
+          mood_menu.choice('angry') {mood_category = 'angry'}
         end
 
         # save
