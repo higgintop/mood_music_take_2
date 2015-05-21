@@ -203,9 +203,13 @@ class RecommendationsController
         loop do
           update_mood_category = ask("Update mood category? [y/n]").upcase
           if update_mood_category == 'Y'
-            loop do
-              new_mood_category = ask("Please enter new mood category:\n1. happy\n2. sad\n3. mellow\n4. angry")
-             break if is_property_valid?(new_mood_category)
+            choose do |mood_menu|
+              mood_menu.prompt = ""
+              say('Please enter new mood category:')
+              mood_menu.choice('happy') {new_mood_category = 'happy'}
+              mood_menu.choice('sad') {new_mood_category = 'sad'}
+              mood_menu.choice('mellow') {new_mood_category = 'mellow'}
+              mood_menu.choice('angry') {new_mood_category = 'angry'}
             end
           end
           break if update_mood_category == 'Y' or update_mood_category == 'N'
